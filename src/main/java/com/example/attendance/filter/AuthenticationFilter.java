@@ -23,8 +23,8 @@ public class AuthenticationFilter implements Filter {
 
         String uri = req.getRequestURI();
 
-        // ログインページ、CSS、JSなどの静的リソースはフィルターの対象外にする
-        if (uri.endsWith("login.jsp") || uri.endsWith("LoginServlet") || uri.endsWith(".css") || uri.endsWith(".js")) {
+        // ログインページ、新規登録ページ、CSS、JSなどの静的リソースはフィルターの対象外にする
+        if (uri.endsWith("login.jsp") || uri.endsWith("register.jsp") || uri.endsWith("LoginServlet") || uri.endsWith("users") || uri.endsWith(".css") || uri.endsWith(".js")) { // usersサーブレットも登録アクションを許可するため追加
             chain.doFilter(request, response);
             return;
         }
@@ -32,19 +32,17 @@ public class AuthenticationFilter implements Filter {
         boolean loggedIn = (session != null && session.getAttribute("user") != null);
 
         if (loggedIn) {
-            chain.doFilter(request, response); // ログイン済みなら次のフィルターへ
+            chain.doFilter(request, response);
         } else {
-            res.sendRedirect(req.getContextPath() + "/login.jsp"); // ログインしていなければログインページへリダイレクト
+            res.sendRedirect(req.getContextPath() + "/login.jsp");
         }
     }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // 初期化処理があればここに書く
     }
 
     @Override
     public void destroy() {
-        // 後処理があればここに書く
     }
 }

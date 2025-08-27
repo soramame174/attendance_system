@@ -23,20 +23,31 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String companyCode = req.getParameter("companyCode");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
-        User user = userDAO.findByUsername(username);
         
-        System.out.println("DEBUG: Username received: " + username); // 追加
-        System.out.println("DEBUG: User object retrieved: " + user); // 追加
+        System.out.println("DEBUG: CompanyCode received: " + companyCode);
+        System.out.println("DEBUG: Username received: " + username);
 
-        // ログイン成功チェックと処理を一つのifブロックにまとめる
-        if (user != null && user.isEnabled() && userDAO.verifyPassword(username, password)) {
+        // findByUsernameAndCompanyCodeを呼び出す前に、companyCodeとusernameがnullでないことを確認
+        if (companyCode == null || companyCode.trim().isEmpty() || username == null || username.trim().isEmpty()) {
+            req.setAttribute("errorMessage", "会社コードとユーザーIDは必須項目です。");
+            RequestDispatcher rd = req.getRequestDispatcher("/login.jsp");
+            rd.forward(req, resp);
+            return;
+        }
+
+        User user = userDAO.findByUsernameAndCompanyCode(companyCode, username);
+        
+        System.out.println("DEBUG: User object retrieved: " + user);
+
+        if (user != null && user.isEnabled() && userDAO.verifyPassword(companyCode, username, password)) {
             HttpSession session = req.getSession();
             session.setAttribute("user", user);
+            session.setAttribute("companyCode", user.getCompanyCode());
             session.setAttribute("successMessage", "ログインしました。");
 
-            // 管理者か従業員かの判定とリダイレクト
             if ("admin".equals(user.getRole())) {
                 req.setAttribute("allAttendanceRecords", attendanceDAO.findAll());
                 Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream()
@@ -55,8 +66,7 @@ public class LoginServlet extends HttpServlet {
                 rd.forward(req, resp);
             }
         } else {
-            // ログイン失敗時の処理
-            req.setAttribute("errorMessage", "ユーザーIDまたはパスワードが正しくありません。");
+            req.setAttribute("errorMessage", "会社コード、ユーザーID、またはパスワードが正しくありません。");
             RequestDispatcher rd = req.getRequestDispatcher("/login.jsp");
             rd.forward(req, resp);
         }

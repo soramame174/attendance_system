@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <html lang="ja">
@@ -30,76 +29,67 @@
                     <p>${errorMessage}</p>
                 </div>
             </c:if>
-            <div class="section-container">
-                <div class="section-add">
-                    <h2>ユーザー追加</h2>
-                    <form action="users?action=add" method="post" class="user-form">
-                        <input type="hidden" name="companyCode" value="${sessionScope.companyCode}">
-                        <p>
-                            <label for="add-username">ユーザーID:</label>
-                            <input type="text" id="add-username" name="username" required>
-                        </p>
-                        <p>
-                            <label for="add-password">パスワード:</label>
-                            <input type="password" id="add-password" name="password" required>
-                        </p>
-                        <p>
-                            <label for="add-role">役割:</label>
-                            <select id="add-role" name="role">
-                                <option value="employee">従業員</option>
-                                <option value="admin">管理者</option>
-                            </select>
-                        </p>
-                        <div class="button-group">
-                            <input type="submit" value="追加">
-                        </div>
-                    </form>
+            <div class="card-body">
+                <div class="button-group">
+                    <a href="users?action=generate_code" class="button">社員用登録コード生成</a>
                 </div>
-                <div class="section-list">
-                    <h2>ユーザーリスト</h2>
-                    <table>
-                        <thead>
+                <h2>ユーザーリスト</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ユーザーID</th>
+                            <th>役割</th>
+                            <th>有効/無効</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="user" items="${users}">
                             <tr>
-                                <th>ユーザーID</th>
-                                <th>役割</th>
-                                <th>有効</th>
-                                <th>操作</th>
+                                <td><c:out value="${user.username}" /></td>
+                                <td><c:out value="${user.role}" /></td>
+                                <td>
+                                    <c:if test="${user.enabled}">
+                                        <span class="status-enabled">有効</span>
+                                    </c:if>
+                                    <c:if test="${!user.enabled}">
+                                        <span class="status-disabled">無効</span>
+                                    </c:if>
+                                </td>
+                                <td>
+                                    <a href="users?action=edit&username=<c:out value="${user.username}"/>" class="button">編集</a>
+                                    <form action="users?action=delete" method="post" onsubmit="return confirm('本当に削除しますか？');" style="display:inline;">
+                                        <input type="hidden" name="username" value="<c:out value="${user.username}"/>">
+                                        <input type="submit" value="削除" class="button delete">
+                                    </form>
+                                    <c:if test="${user.enabled}">
+                                        <form action="users?action=toggle_enabled" method="post" style="display:inline;">
+                                            <input type="hidden" name="username" value="<c:out value="${user.username}"/>">
+                                            <input type="hidden" name="enabled" value="false">
+                                            <input type="submit" value="無効化" class="button secondary">
+                                        </form>
+                                    </c:if>
+                                    <c:if test="${!user.enabled}">
+                                        <form action="users?action=toggle_enabled" method="post" style="display:inline;">
+                                            <input type="hidden" name="username" value="<c:out value="${user.username}"/>">
+                                            <input type="hidden" name="enabled" value="true">
+                                            <input type="submit" value="有効化" class="button success">
+                                        </form>
+                                    </c:if>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach var="user" items="${users}">
-                                <tr>
-                                    <td>${user.username}</td>
-                                    <td>${user.role}</td>
-                                    <td>${user.enabled ? 'はい' : 'いいえ'}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a href="users?action=edit&username=${user.username}" class="button">編集</a>
-                                            <form action="users?action=delete" method="post" style="display:inline-block;">
-                                                <input type="hidden" name="username" value="${user.username}">
-                                                <input type="hidden" name="companyCode" value="${sessionScope.companyCode}">
-                                                <input type="submit" value="削除" class="button-delete" onclick="return confirm('本当に削除しますか？');">
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
+                        </c:forEach>
+                    </tbody>
+                </table>
                 <c:if test="${not empty userToEdit}">
-                    <div class="section-edit">
-                        <h2>ユーザー編集</h2>
-                        <form action="users?action=update" method="post" class="user-form">
+                    <div class="edit-user-form">
+                        <h2>ユーザー情報編集</h2>
+                        <form action="users?action=update" method="post">
                             <input type="hidden" name="username" value="${userToEdit.username}">
-                            <input type="hidden" name="companyCode" value="${sessionScope.companyCode}">
+                            <input type="hidden" name="companyCode" value="${userToEdit.companyCode}">
                             <p>
-                                <label for="edit-newUsername">新しいユーザーID:</label>
-                                <input type="text" id="edit-newUsername" name="newUsername" value="${userToEdit.username}" required>
-                            </p>
-                            <p>
-                                <label for="edit-password">新しいパスワード:</label>
-                                <input type="password" id="edit-password" name="password" placeholder="変更しない場合は空欄">
+                                <label>ユーザーID:</label>
+                                <span>${userToEdit.username}</span>
                             </p>
                             <p>
                                 <label for="edit-role">役割:</label>
@@ -124,9 +114,6 @@
                 </c:if>
             </div>
         </div>
-        <!-- <div class="footer">
-            <a href="attendance">勤怠管理に戻る</a>
-        </div> -->
     </div>
 </body>
 </html>

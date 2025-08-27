@@ -1,6 +1,6 @@
-<!DOCTYPE html>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -13,6 +13,13 @@
     <div class="container">
 	<h1>勤怠管理システム</h1>
 	<form action="login" method="post">
+		<c:if test="${not empty errorMessage}">
+			<p class="error-message"><c:out value="${errorMessage}"/></p>
+		</c:if>
+		<p>
+			<label for="companyCode">会社コード:</label>
+			<input type="text" id="companyCode" name="companyCode" required>
+		</p>
 		<p>
 			<label for="username">ユーザーID:</label>
 			<input type="text" id="username"
@@ -30,10 +37,9 @@
 		<p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
 		<c:remove var="successMessage" scope="session"/>
 	</c:if>
-<!-- 	<p style="text-align:center; margin-top:20px;">
-		<a href="register">新規登録はこちら</a>
-   	</p> -->
-</div>
-            
+	<p class="link-to-register">
+		<a href="register.jsp">新規登録はこちら</a>
+	</p>
+    </div>
 </body>
 </html>
