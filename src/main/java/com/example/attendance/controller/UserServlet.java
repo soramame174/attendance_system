@@ -26,7 +26,7 @@ public class UserServlet extends HttpServlet {
 		String companyCode = (String) session.getAttribute("companyCode");
 
 		if (currentUser == null || !("admin".equals(currentUser.getRole()))) {
-			resp.sendRedirect("/login.jsp");
+			resp.sendRedirect(req.getContextPath() + "/login.jsp");
 			return;
 		}
 		
@@ -74,7 +74,7 @@ public class UserServlet extends HttpServlet {
 			// パラメータの検証
 			if (companyCode == null || companyCode.trim().isEmpty() || username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
 				req.setAttribute("errorMessage", "必須項目が入力されていません。");
-				RequestDispatcher rd = req.getRequestDispatcher("/jsp/register.jsp");
+				RequestDispatcher rd = req.getRequestDispatcher("/register.jsp");
 				rd.forward(req, resp);
 				return;
 			}
@@ -83,7 +83,7 @@ public class UserServlet extends HttpServlet {
 			if (registrationCode != null && !registrationCode.trim().isEmpty()) {
 				if (userDAO.finalizeProvisionalUser(registrationCode, username, password)) {
 					session.setAttribute("successMessage", "登録が完了しました。ログインしてください。");
-					resp.sendRedirect("/login.jsp");
+					resp.sendRedirect(req.getContextPath() + "/login.jsp");
 				} else {
 			            req.setAttribute("errorMessage", "この専用コードは無効です。またはユーザーIDがすでに存在します。");
 			            RequestDispatcher rd = req.getRequestDispatcher("/register.jsp");
@@ -94,15 +94,15 @@ public class UserServlet extends HttpServlet {
 			else {
 				if (userDAO.companyExists(companyCode)) {
 					req.setAttribute("errorMessage", "会社コードが既に存在します。社員として登録する場合は専用コードを入力してください。");
-					RequestDispatcher rd = req.getRequestDispatcher("/jsp/register.jsp");
+					RequestDispatcher rd = req.getRequestDispatcher("/register.jsp");
 					rd.forward(req, resp);
 				} else {
 					if (userDAO.createFirstAdmin(companyCode, username, password)) {
 						session.setAttribute("successMessage", "管理者アカウントを作成しました。ログインしてください。");
-						resp.sendRedirect("/login.jsp");
+						resp.sendRedirect(req.getContextPath() + "/login.jsp");
 					} else {
 						req.setAttribute("errorMessage", "登録に失敗しました。再度お試しください。");
-						RequestDispatcher rd = req.getRequestDispatcher("/jsp/register.jsp");
+						RequestDispatcher rd = req.getRequestDispatcher("/register.jsp");
 						rd.forward(req, resp);
 					}
 				}
@@ -113,7 +113,7 @@ public class UserServlet extends HttpServlet {
 		User currentUser = (User) session.getAttribute("user");
 		String currentCompanyCode = (String) session.getAttribute("companyCode");
 		if (currentUser == null || !("admin".equals(currentUser.getRole()))) {
-			resp.sendRedirect("/login.jsp");
+			resp.sendRedirect(req.getContextPath() + "/login.jsp");
 			return;
 		}
 		
@@ -129,13 +129,49 @@ public class UserServlet extends HttpServlet {
 				req.setAttribute("errorMessage", "ユーザーIDは既に存在します。");
 			}
 		} else if ("update".equals(action)) {
-			String username = req.getParameter("username");
+			String originalUsername = req.getParameter("originalUsername");
+			String newUsername = req.getParameter("username");
+			String newPassword = req.getParameter("newPassword");
 			String role = req.getParameter("role");
 			boolean enabled = "true".equals(req.getParameter("enabled"));
-			User existingUser = userDAO.findByUsernameAndCompanyCode(currentCompanyCode, username);
+
+			User existingUser = userDAO.findByUsernameAndCompanyCode(currentCompanyCode, originalUsername);
+
 			if (existingUser != null) {
-				userDAO.updateUser(new User(username, existingUser.getPassword(), role, enabled, currentCompanyCode, existingUser.getRegistrationCode()));
-				session.setAttribute("successMessage", "ユーザー情報を更新しました。");
+				// ユーザーIDが変更されたかどうかをチェック
+				boolean isUsernameChanged = !originalUsername.equals(newUsername);
+				
+				// ユーザーID変更の場合、新しいIDが既存か確認
+				if (isUsernameChanged && userDAO.findByUsernameAndCompanyCode(currentCompanyCode, newUsername) != null) {
+					session.setAttribute("errorMessage", "ユーザーID '" + newUsername + "' は既に存在します。");
+				} else {
+					// 変更後のパスワードを決定
+					String passwordToUse = existingUser.getPassword();
+					if (newPassword != null && !newPassword.trim().isEmpty()) {
+						passwordToUse = UserDAO.hashPassword(newPassword);
+					}
+
+					// 変更後のユーザー情報を含む新しいUserオブジェクトを作成
+					User updatedUser = new User(newUsername, passwordToUse, role, enabled, currentCompanyCode, existingUser.getRegistrationCode());
+					
+					// ユーザーIDが変更された場合は、古いユーザーを削除して新しいユーザーを追加
+					if (isUsernameChanged) {
+						userDAO.deleteUser(currentCompanyCode, originalUsername);
+						userDAO.addUser(updatedUser);
+					} else {
+						// ユーザーIDが変更されていない場合は、既存のユーザーを更新
+						userDAO.updateUser(updatedUser);
+					}
+					
+					// 自分のアカウントを更新した場合、セッションも更新
+					if (currentUser.getUsername().equals(originalUsername)) {
+						session.setAttribute("user", updatedUser);
+					}
+					
+					session.setAttribute("successMessage", "ユーザー情報を更新しました。");
+				}
+			} else {
+				session.setAttribute("errorMessage", "ユーザーが見つかりませんでした。");
 			}
 		} else if ("delete".equals(action)) {
 			String username = req.getParameter("username");

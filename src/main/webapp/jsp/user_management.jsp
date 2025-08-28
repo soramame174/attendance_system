@@ -12,17 +12,17 @@
     <div class="container">
         <h1>ユーザー管理</h1>
         <div class="card">
-            <c:if test="${not empty successMessage}">
-                <div class="success-message">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    <p>${successMessage}</p>
-                </div>
-            </c:if>
             <div class="main-nav">
 				<a href="attendance?action=filter">勤怠履歴管理</a>
 				<a href="users?action=list">ユーザー管理</a>
 				<a href="logout">ログアウト</a>
 			</div>
+			<c:if test="${not empty successMessage}">
+                <div class="success-message">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <p>${successMessage}</p>
+                </div>
+            </c:if>
             <c:if test="${not empty errorMessage}">
                 <div class="error-message">
                     <span class="material-symbols-outlined">error</span>
@@ -81,16 +81,19 @@
                         </c:forEach>
                     </tbody>
                 </table>
-                <c:if test="${not empty userToEdit}">
-                    <div class="edit-user-form">
+                <c:if test="${userToEdit != null}">
+                    <div class="edit-form">
                         <h2>ユーザー情報編集</h2>
                         <form action="users?action=update" method="post">
-                            <input type="hidden" name="username" value="${userToEdit.username}">
-                            <input type="hidden" name="companyCode" value="${userToEdit.companyCode}">
+                            <input type="hidden" name="originalUsername" value="${userToEdit.username}">
                             <p>
-                                <label>ユーザーID:</label>
-                                <span>${userToEdit.username}</span>
+                                <label for="edit-username">ユーザーID:</label>
+                                <input type="text" id="edit-username" name="username" value="${userToEdit.username}" required>
                             </p>
+                            <p>
+							    <label for="edit-password">新しいパスワード:</label>
+							    <input type="password" id="edit-password" name="newPassword" placeholder="変更しない場合は空欄">
+							</p>
                             <p>
                                 <label for="edit-role">役割:</label>
                                 <select id="edit-role" name="role">
