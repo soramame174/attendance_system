@@ -29,6 +29,58 @@
                     <p>${errorMessage}</p>
                 </div>
             </c:if>
+            
+            <c:if test="${not empty sessionScope.provisionalUser}">
+			    <div class="card">
+			        <p>
+			            <strong>登録コード:</strong> 
+			            <span id="registrationCode"><c:out value="${sessionScope.provisionalUser.user.registrationCode}"/></span>
+			            <button onclick="copyCode()" class="button secondary" style="margin-left: 10px;">コピー</button>
+			            <span id="copyMessage" style="color: green; margin-left: 10px; display: none;">コピーしました！</span>
+			        </p>
+			        <p><strong>残り時間:</strong> <span id="countdown"></span></p>
+			        <form action="users?action=delete_provisional_code" method="post" style="display:inline;" onsubmit="return confirm('本当にこの登録コードを削除しますか？');">
+			            <input type="hidden" name="registrationCode" value="<c:out value="${sessionScope.provisionalUser.user.registrationCode}"/>">
+			            <button type="submit" class="button delete">登録コード削除</button>
+			        </form>
+			    </div>
+			    <script>
+			        const countdownSpan = document.getElementById('countdown');
+			        let remainingSeconds = ${sessionScope.provisionalUser.getRemainingSeconds()};
+			
+			        const updateCountdown = () => {
+			            if (remainingSeconds <= 0) {
+			                countdownSpan.textContent = "有効期限切れ";
+			                clearInterval(countdownInterval);
+			            } else {
+			                const minutes = Math.floor(remainingSeconds / 60);
+			                const seconds = remainingSeconds % 60;
+			                countdownSpan.textContent = minutes + "分 " + seconds + "秒";
+			                remainingSeconds--;
+			            }
+			        };
+			
+			        updateCountdown();
+			        const countdownInterval = setInterval(updateCountdown, 1000);
+
+			        function copyCode() {
+			            const codeSpan = document.getElementById('registrationCode');
+			            const codeText = codeSpan.textContent || codeSpan.innerText;
+			            
+			            navigator.clipboard.writeText(codeText).then(() => {
+			                const message = document.getElementById('copyMessage');
+			                message.style.display = 'inline';
+			                setTimeout(() => {
+			                    message.style.display = 'none';
+			                }, 2000);
+			            }).catch(err => {
+			                console.error('コピーに失敗しました:', err);
+			                alert('コピーに失敗しました。');
+			            });
+			        }
+			    </script>
+			</c:if>
+            
             <div class="card-body">
                 <div class="button-group">
                     <a href="users?action=generate_code" class="button">社員用登録コード生成</a>

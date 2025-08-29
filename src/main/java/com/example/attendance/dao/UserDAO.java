@@ -2,12 +2,14 @@ package com.example.attendance.dao;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.example.attendance.dto.ProvisionalUser;
 import com.example.attendance.dto.User;
 
 public class UserDAO {
@@ -81,12 +83,23 @@ public class UserDAO {
 		}
 	}
 
-	public String createProvisionalUser(String companyCode) {
-		String registrationCode = UUID.randomUUID().toString().substring(0, 8);
-		User provisionalUser = new User(null, null, "employee", false, companyCode, registrationCode);
-		registrationCodes.put(registrationCode, provisionalUser);
-		System.out.println("DEBUG: Provisional user created with code: " + registrationCode);
-		return registrationCode;
+	public ProvisionalUser createProvisionalUser(String companyCode) {
+	    // 既存のコードをクリア
+	    registrationCodes.clear();
+	    // UUID.randomUUID()を使ってユニークなコードを生成
+	    String registrationCode = UUID.randomUUID().toString();
+	    // 有効期限を現在から10分後に設定
+	    LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
+	    User provisionalUser = new User(null, null, "employee", false, companyCode, registrationCode);
+	    ProvisionalUser pvUser = new ProvisionalUser(provisionalUser, expireAt);
+	    registrationCodes.put(registrationCode, provisionalUser);
+	    System.out.println("DEBUG: Provisional user created with code: " + registrationCode);
+	    return pvUser;
+	}
+	
+	public void deleteProvisionalUser(String registrationCode) {
+		registrationCodes.remove(registrationCode);
+		System.out.println("DEBUG: Provisional user with code: " + registrationCode + " has been deleted.");
 	}
 	
 	public boolean createFirstAdmin(String companyCode, String username, String password) {

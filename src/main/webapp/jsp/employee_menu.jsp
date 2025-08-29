@@ -62,7 +62,7 @@
     </div>
 
     <h2>あなたの勤怠履歴</h2>
-    <div class="table-scroll-container">
+    <div>
         <table>
             <thead>
                 <tr>
@@ -70,7 +70,7 @@
                     <th>退勤時刻</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-scroll-container">
                 <c:choose>
                     <c:when test="${not empty attendanceRecords}">
                         <c:forEach var="att" items="${attendanceRecords}">
