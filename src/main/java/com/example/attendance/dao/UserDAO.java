@@ -16,7 +16,7 @@ public class UserDAO {
 	// Map<会社コード, Map<ユーザーID, User>>
 	private static final Map<String, Map<String, User>> companyUsers = new ConcurrentHashMap<>();
 	// Map<登録コード, User>
-	private static final Map<String, User> registrationCodes = new ConcurrentHashMap<>();
+	private static final Map<String, ProvisionalUser> registrationCodes = new ConcurrentHashMap<>();
 	
 	static {
 		// サンプルユーザーデータ (ログインテスト用) を再追加
@@ -36,7 +36,11 @@ public class UserDAO {
 	}
 	
 	public User findByRegistrationCode(String registrationCode) {
-		return registrationCodes.get(registrationCode);
+	    ProvisionalUser provisionalUser = registrationCodes.get(registrationCode);
+	    if (provisionalUser != null) {
+	        return provisionalUser.getUser();
+	    }
+	    return null;
 	}
 	
 	public boolean companyExists(String companyCode) {
@@ -92,7 +96,10 @@ public class UserDAO {
 	    LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
 	    User provisionalUser = new User(null, null, "employee", false, companyCode, registrationCode);
 	    ProvisionalUser pvUser = new ProvisionalUser(provisionalUser, expireAt);
-	    registrationCodes.put(registrationCode, provisionalUser);
+	    
+	    // ProvisionalUser型のオブジェクトをマップに格納する
+	    registrationCodes.put(registrationCode, pvUser);
+	    
 	    System.out.println("DEBUG: Provisional user created with code: " + registrationCode);
 	    return pvUser;
 	}
@@ -112,16 +119,28 @@ public class UserDAO {
 	}
 
 	public boolean finalizeProvisionalUser(String registrationCode, String username, String password) {
-		User provisionalUser = registrationCodes.get(registrationCode);
-		if (provisionalUser != null && !companyUsers.getOrDefault(provisionalUser.getCompanyCode(), new ConcurrentHashMap<>()).containsKey(username)) {
-			provisionalUser.setUsername(username);
-			provisionalUser.setPassword(hashPassword(password));
-			provisionalUser.setEnabled(true);
-			addUser(provisionalUser);
-			registrationCodes.remove(registrationCode);
-			return true;
-		}
-		return false;
+	    // MapからProvisionalUserオブジェクトを取得する
+	    ProvisionalUser provisionalUser = registrationCodes.get(registrationCode);
+
+	    // 有効期限が切れていないか、ユーザー名が重複していないかチェック
+	    if (provisionalUser != null
+	            && provisionalUser.getRemainingSeconds() > 0 // 有効期限が切れていないかチェック
+	            && !companyUsers.getOrDefault(provisionalUser.getUser().getCompanyCode(), new ConcurrentHashMap<>()).containsKey(username)) {
+	        
+	        // ProvisionalUserオブジェクトからUserオブジェクトを取得して更新
+	        User userToFinalize = provisionalUser.getUser();
+	        userToFinalize.setUsername(username);
+	        userToFinalize.setPassword(hashPassword(password));
+	        userToFinalize.setEnabled(true);
+	        
+	        // 最終的なUserオブジェクトをマップに追加
+	        addUser(userToFinalize);
+	        
+	        // 登録コードをマップから削除
+	        registrationCodes.remove(registrationCode);
+	        return true;
+	    }
+	    return false;
 	}
 
 	public static String hashPassword(String password) {
