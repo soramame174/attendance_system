@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import com.example.attendance.dao.UserDAO;
+import com.example.attendance.dto.ProvisionalUser;
 import com.example.attendance.dto.User;
 
 @WebServlet("/users")
@@ -48,12 +49,16 @@ public class UserServlet extends HttpServlet {
 			RequestDispatcher rd = req.getRequestDispatcher("/jsp/user_management.jsp");
 			rd.forward(req, resp);
 		} else if ("generate_code".equals(action)) {
-			String registrationCode = userDAO.createProvisionalUser(companyCode);
-			req.setAttribute("successMessage", "新入社員登録コードを生成しました: " + registrationCode);
-			Collection<User> users = userDAO.getAllUsers(companyCode);
-			req.setAttribute("users", users);
-			RequestDispatcher rd = req.getRequestDispatcher("/jsp/user_management.jsp");
-			rd.forward(req, resp);
+		    ProvisionalUser provisionalUser = userDAO.createProvisionalUser(companyCode);
+		    
+		    // 既存のsession変数をそのまま使用
+		    session.setAttribute("provisionalUser", provisionalUser);
+
+		    req.setAttribute("successMessage", "新入社員登録コードを生成しました: " + provisionalUser.getUser().getRegistrationCode());
+		    Collection<User> users = userDAO.getAllUsers(companyCode);
+		    req.setAttribute("users", users);
+		    RequestDispatcher rd = req.getRequestDispatcher("/jsp/user_management.jsp");
+		    rd.forward(req, resp);
 		} else {
 			resp.sendRedirect("users?action=list");
 		}
@@ -64,6 +69,15 @@ public class UserServlet extends HttpServlet {
 		req.setCharacterEncoding("UTF-8");
 		String action = req.getParameter("action");
 		HttpSession session = req.getSession(true);
+		
+		if ("delete_provisional_code".equals(action)) {
+	        String registrationCode = req.getParameter("registrationCode");
+	        userDAO.deleteProvisionalUser(registrationCode);
+	        session.removeAttribute("provisionalUser");
+	        session.setAttribute("successMessage", "登録コードを削除しました。");
+	        resp.sendRedirect("users?action=list");
+	        return;
+	    }
 		
 		if ("register".equals(action)) {
 			String companyCode = req.getParameter("companyCode");
