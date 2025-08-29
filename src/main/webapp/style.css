@@ -367,3 +367,16 @@ tr:hover {
     z-index: 10;
     box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
 }
+/* table-actions クラス内の削除ボタンのスタイル */
+.table-actions .button.delete {
+  background-color: var(--danger-color);
+}
+.table-actions .button.delete:hover {
+  background-color: var(--danger-hover-color);
+}
+.button.delete {
+    background-color: var(--danger-color);
+}
+.button.delete:hover {
+    background-color: var(--danger-hover-color);
+}

@@ -41,7 +41,7 @@
 			        <p><strong>残り時間:</strong> <span id="countdown"></span></p>
 			        <form action="users?action=delete_provisional_code" method="post" style="display:inline;" onsubmit="return confirm('本当にこの登録コードを削除しますか？');">
 			            <input type="hidden" name="registrationCode" value="<c:out value="${sessionScope.provisionalUser.user.registrationCode}"/>">
-			            <button type="submit" class="button delete">登録コード削除</button>
+			            <button type="submit" class="button delete" style="background-color: var(--danger-color); :hover background-color: var(--danger-hover-color);">登録コード削除</button>
 			        </form>
 			    </div>
 			    <script>
@@ -109,10 +109,10 @@
                                     </c:if>
                                 </td>
                                 <td>
-                                    <a href="users?action=edit&username=<c:out value="${user.username}"/>" class="button">編集</a>
+                                    <a href="users?action=edit&username=<c:out value="${user.username}"/>" class="button small" style="padding: 12px 27px;">編集</a>
                                     <form action="users?action=delete" method="post" onsubmit="return confirm('本当に削除しますか？');" style="display:inline;">
                                         <input type="hidden" name="username" value="<c:out value="${user.username}"/>">
-                                        <input type="submit" value="削除" class="button delete">
+                                        <input type="submit" value="削除" class="button delete" style="background-color: var(--danger-color); :hover background-color: var(--danger-hover-color);">
                                     </form>
                                     <c:if test="${user.enabled}">
                                         <form action="users?action=toggle_enabled" method="post" style="display:inline;">
