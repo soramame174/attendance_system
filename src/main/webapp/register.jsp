@@ -26,7 +26,7 @@
                 <input type="text" id="companyCode" name="companyCode" required>
             </p>
             <p>
-                <label for="registrationCode">専用コード (任意):</label>
+                <label for="registrationCode">専用コード (社員用):</label>
                 <input type="text" id="registrationCode" name="registrationCode">
             </p>
             <p>
