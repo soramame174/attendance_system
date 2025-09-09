@@ -45,15 +45,14 @@
         background-color: #f9f9f9;
         border-radius: 8px;
         padding: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .table-scroll-container {
-        max-height: 400px;
-        overflow-y: auto;
-        border-radius: 8px;
-        background-color: #fff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+	  max-height: 400px;
+	  overflow-y: auto;
+	  border-radius: 10px;
+	  background-color: var(--surface-color);
+	  padding-right: 15px; /* この行を追加 */
+	}
     .table-scroll-container table {
         width: 100%;
         border-collapse: collapse;
@@ -64,6 +63,12 @@
         background-color: #f2f2f2;
         z-index: 10;
         box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+    }
+    .button.danger.disabled-button {
+        background-color: #e0e0e0;
+        cursor: not-allowed;
+        border: 1px solid #ccc;
+        color: #a0a0a0;
     }
 </style>
 </head>
@@ -153,44 +158,47 @@
 	<form id="bulkDeleteForm" action="attendance" method="post">
 	    <input type="hidden" name="action" value="bulk_delete">
 	    <div class="button-group">
-	        <button type="submit" class="button danger" onclick="return confirm('本当に選択した勤怠記録をすべて削除しますか？');">選択項目を削除</button>
+	        <button type="submit" class="button danger" id="bulkDeleteButton">選択項目を削除</button>
 	    </div>
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="selectAllCheckboxes" class="table-scroll-container"></th>
-                    <th>従業員 ID</th>
-                    <th>出勤時刻</th>
-                    <th>退勤時刻</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="att" items="${allAttendanceRecords}">
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="recordsToDelete" value="${att.userId},${att.checkInTime}">
-                        </td>
-                        <td>${att.userId}</td>
-                        <td>${att.checkInTime}</td>
-                        <td>${att.checkOutTime}</td>
-                        <td class="table-actions">
-                            <form action="attendance" method="post" style="display:inline;">
-                                <input type="hidden" name="action" value="delete_manual">
-                                <input type="hidden" name="userId" value="${att.userId}">
-                                <input type="hidden" name="checkInTime" value="${att.checkInTime}">
-                                <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
-                                <input type="submit" value="削除" class="button danger" onclick="return confirm('本当にこの勤怠記録を削除しますか？');">
-                            </form>
-                        </td>
-                    </tr>
-                </c:forEach>
-                <c:if test="${empty allAttendanceRecords}">
-                    <tr><td colspan="5">データがありません。</td></tr>
-                </c:if>
-            </tbody>
-        </table>
-	</form>
+	    
+	    <div class="table-scroll-container">
+	        <table style="margin-top: -1px;">
+	            <thead>
+	                <tr>
+	                    <th><input type="checkbox" id="selectAllCheckboxes"></th>
+	                    <th>従業員 ID</th>
+	                    <th>出勤時刻</th>
+	                    <th>退勤時刻</th>
+	                    <th>操作</th>
+	                </tr>
+	            </thead>
+	            <tbody>
+	                <c:forEach var="att" items="${allAttendanceRecords}">
+	                    <tr>
+	                        <td>
+	                            <input type="checkbox" class="record-checkbox" name="recordsToDelete" value="${att.userId},${att.checkInTime}">
+	                        </td>
+	                        <td>${att.userId}</td>
+	                        <td>${att.checkInTime}</td>
+	                        <td>${att.checkOutTime}</td>
+	                        <td class="table-actions">
+	                            <form action="attendance" method="post" class="single-delete-form" style="display:inline;">
+	                                <input type="hidden" name="action" value="delete_manual">
+	                                <input type="hidden" name="userId" value="${att.userId}">
+	                                <input type="hidden" name="checkInTime" value="${att.checkInTime}">
+	                                <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
+	                                <input type="submit" value="削除" class="button danger single-delete-button">
+	                            </form>
+	                        </td>
+	                    </tr>
+	                </c:forEach>
+	                <c:if test="${empty allAttendanceRecords}">
+	                    <tr><td colspan="5">データがありません。</td></tr>
+	                </c:if>
+	            </tbody>
+	        </table>
+	    </div>
+    </form>
 	<h2>勤怠記録の手動追加</h2>
 	<form action="attendance" method="post">
 		<input type="hidden" name="action" value="add_manual">
@@ -215,6 +223,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         function createChart(canvasId, chartData, chartLabel, backgroundColor, borderColor, yAxisTitle) {
+            
             const labels = Object.keys(chartData).sort();
             const values = labels.map(key => chartData[key]);
             if (labels.length > 0) {
@@ -289,14 +298,89 @@
         createChart('monthlyAttendanceDaysChart', monthlyAttendanceDaysData, '出勤日数', 'rgba(75, 192, 192, 0.5)', 'rgba(75, 192, 192, 1)', '日数');
 
         const selectAllCheckbox = document.getElementById('selectAllCheckboxes');
-        const checkboxes = document.querySelectorAll('input[name="recordsToDelete"]');
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function() {
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                });
+        const bulkDeleteButton = document.getElementById('bulkDeleteButton');
+        const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+
+        const recordCheckboxes = document.querySelectorAll('.record-checkbox');
+
+        // 個別削除ボタンの状態を更新する関数
+        function updateSingleDeleteButtons() {
+            recordCheckboxes.forEach(checkbox => {
+                const singleDeleteButton = checkbox.closest('tr').querySelector('.single-delete-button');
+                if (singleDeleteButton) {
+                    if (checkbox.checked) {
+                        singleDeleteButton.disabled = false;
+                        singleDeleteButton.classList.remove('disabled-button');
+                    } else {
+                        singleDeleteButton.disabled = true;
+                        singleDeleteButton.classList.add('disabled-button');
+                    }
+                }
             });
         }
+        
+        // 一括削除ボタンの状態を更新する関数
+        function updateBulkDeleteButtonState() {
+            const checkedCount = document.querySelectorAll('.record-checkbox:checked').length;
+            bulkDeleteButton.disabled = checkedCount === 0;
+            if (checkedCount > 0) {
+                bulkDeleteButton.classList.remove('disabled-button');
+            } else {
+                bulkDeleteButton.classList.add('disabled-button');
+            }
+        }
+
+        // 全選択チェックボックスのイベントリスナー
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                recordCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateSingleDeleteButtons();
+                updateBulkDeleteButtonState();
+            });
+        }
+
+        // 個別のチェックボックスのイベントリスナー
+        recordCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // 全選択チェックボックスの状態を更新
+                const allChecked = Array.from(recordCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+
+                updateSingleDeleteButtons();
+                updateBulkDeleteButtonState();
+            });
+        });
+
+        // フォーム送信の制御（一括削除）
+        bulkDeleteForm.addEventListener('submit', function(event) {
+            const checkedCount = document.querySelectorAll('.record-checkbox:checked').length;
+            if (checkedCount === 0) {
+                alert('削除する項目を1つ以上選択してください。');
+                event.preventDefault();
+            } else if (!confirm('本当に選択した勤怠記録をすべて削除しますか？')) {
+                event.preventDefault();
+            }
+        });
+        
+        // フォーム送信の制御（個別削除）
+        document.querySelectorAll('.single-delete-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                const checkbox = form.closest('tr').querySelector('.record-checkbox');
+                if (!checkbox.checked) {
+                    alert('この項目を削除するにはチェックボックスを選択してください。');
+                    event.preventDefault();
+                } else if (!confirm('本当にこの勤怠記録を削除しますか？')) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        // ページ読み込み時にボタンの状態を初期化
+        updateSingleDeleteButtons();
+        updateBulkDeleteButtonState();
     });
 </script>
 </body>

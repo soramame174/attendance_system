@@ -107,10 +107,11 @@ public class AttendanceDAO {
 	}
 	
 	public boolean deleteManualAttendance(String userId, LocalDateTime checkIn, LocalDateTime checkOut) {
-		return attendanceRecords.removeIf(att ->
-			att.getUserId().equals(userId) &&
-			att.getCheckInTime().equals(checkIn) &&
-			(att.getCheckOutTime() == null ? checkOut == null : att.getCheckOutTime().equals(checkOut))
-		);	
+	    // 比較時に秒まで切り捨てて一致を確認する
+	    return attendanceRecords.removeIf(att ->
+	        att.getUserId().equals(userId) &&
+	        att.getCheckInTime().truncatedTo(ChronoUnit.SECONDS).equals(checkIn.truncatedTo(ChronoUnit.SECONDS)) &&
+	        (att.getCheckOutTime() == null ? checkOut == null : att.getCheckOutTime().truncatedTo(ChronoUnit.SECONDS).equals(checkOut.truncatedTo(ChronoUnit.SECONDS)))
+	    );    
 	}
 }

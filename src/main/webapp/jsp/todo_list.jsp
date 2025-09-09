@@ -27,9 +27,10 @@
         border-radius: 4px;
         background-color: #007bff;
         transition: background-color 0.3s;
+        text-decoration: none;
     }
     .main-nav a:hover {
-        text-decoration: underline;
+        text-decoration: none;
     }
     h1 {
         text-align: center;
@@ -83,6 +84,10 @@
     .delete-btn {
         background-color: #dc3545;
         color: white;
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
     }
     .priority-badge {
         width: 24px;
@@ -97,14 +102,14 @@
         margin-right: 10px;
     }
     .priority-high {
-        background-color: #dc3545; /* 赤 */
+        background-color: #dc3545;
     }
     .priority-medium {
-        background-color: #ffc107; /* 黄 */
-        color: white; /* 文字を白に変更 */
+        background-color: #ffc107;
+        color: white;
     }
     .priority-low {
-        background-color: #28a745; /* 緑 */
+        background-color: #28a745;
     }
     .filter-group {
         display: flex;
@@ -154,7 +159,7 @@
         <c:choose>
             <c:when test="${not empty todos}">
                 <c:forEach var="todo" items="${todos}">
-                    <li class="task-item">
+                    <li class="task-item <c:if test="${todo.completed}">completed</c:if>">
                         <div style="display: flex; align-items: center;">
                             <div class="priority-badge
                                 <c:choose>
@@ -168,7 +173,7 @@
                                 <input type="hidden" name="action" value="toggle">
                                 <input type="hidden" name="todoId" value="${todo.id}">
                                 <input type="checkbox" name="completed" onchange="this.form.submit()" <c:if test="${todo.completed}">checked</c:if>>
-                                <span style="margin-left: 10px; <c:if test="${todo.completed}">text-decoration: line-through; color: #888;</c:if>">
+                                <span style="margin-left: 10px;">
                                     <c:out value="${todo.task}"/> (<c:out value="${todo.category}"/>)
                                 </span>
                             </form>
