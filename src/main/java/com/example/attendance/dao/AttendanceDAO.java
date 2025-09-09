@@ -95,7 +95,6 @@ public class AttendanceDAO {
 	        if (parts.length == 2) {
 	            String userId = parts[0];
 	            LocalDateTime checkIn = LocalDateTime.parse(parts[1]);
-	            // checkOutは bulk delete では使わない
 	            if (!attendanceRecords.removeIf(att ->
 	                att.getUserId().equals(userId) &&
 	                att.getCheckInTime().equals(checkIn)

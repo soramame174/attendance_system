@@ -117,7 +117,6 @@
 		</div>
 		<button type="submit" class="button">フィルタ</button>
 	</form>
-	<%-- <p class="error-message"><c:out value="${errorMessage}"/></p> --%>
 	<a href="attendance?action=export_csv&filterUserId=<c:out value="${param.filterUserId}"/>&startDate=<c:out value="${param.startDate}"/>&endDate=<c:out value="${param.endDate}"/>" class="button">勤怠履歴を CSV エクスポート</a>
 	<h3>勤怠サマリー (合計労働時間)</h3>
 	<table class="summary-table">
@@ -156,43 +155,41 @@
 	    <div class="button-group">
 	        <button type="submit" class="button danger" onclick="return confirm('本当に選択した勤怠記録をすべて削除しますか？');">選択項目を削除</button>
 	    </div>
-	    <div>
-	        <table>
-	            <thead>
-	                <tr class="table-scroll-container">
-	                    <th><input type="checkbox" id="selectAllCheckboxes"></th>
-	                    <th>従業員 ID</th>
-	                    <th>出勤時刻</th>
-	                    <th>退勤時刻</th>
-	                    <th>操作</th>
-	                </tr>
-	            </thead>
-	            <tbody>
-	                <c:forEach var="att" items="${allAttendanceRecords}">
-	                    <tr>
-	                        <td>
-	                            <input type="checkbox" name="recordsToDelete" value="${att.userId},${att.checkInTime}">
-	                        </td>
-	                        <td>${att.userId}</td>
-	                        <td>${att.checkInTime}</td>
-	                        <td>${att.checkOutTime}</td>
-	                        <td class="table-actions">
-	                            <form action="attendance" method="post" style="display:inline;">
-	                                <input type="hidden" name="action" value="delete_manual">
-	                                <input type="hidden" name="userId" value="${att.userId}">
-	                                <input type="hidden" name="checkInTime" value="${att.checkInTime}">
-	                                <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
-	                                <input type="submit" value="削除" class="button danger" onclick="return confirm('本当にこの勤怠記録を削除しますか？');">
-	                            </form>
-	                        </td>
-	                    </tr>
-	                </c:forEach>
-	                <c:if test="${empty allAttendanceRecords}">
-	                    <tr><td colspan="5">データがありません。</td></tr>
-	                </c:if>
-	            </tbody>
-	        </table>
-	    </div>
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAllCheckboxes" class="table-scroll-container"></th>
+                    <th>従業員 ID</th>
+                    <th>出勤時刻</th>
+                    <th>退勤時刻</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="att" items="${allAttendanceRecords}">
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="recordsToDelete" value="${att.userId},${att.checkInTime}">
+                        </td>
+                        <td>${att.userId}</td>
+                        <td>${att.checkInTime}</td>
+                        <td>${att.checkOutTime}</td>
+                        <td class="table-actions">
+                            <form action="attendance" method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_manual">
+                                <input type="hidden" name="userId" value="${att.userId}">
+                                <input type="hidden" name="checkInTime" value="${att.checkInTime}">
+                                <input type="hidden" name="checkOutTime" value="${att.checkOutTime}">
+                                <input type="submit" value="削除" class="button danger" onclick="return confirm('本当にこの勤怠記録を削除しますか？');">
+                            </form>
+                        </td>
+                    </tr>
+                </c:forEach>
+                <c:if test="${empty allAttendanceRecords}">
+                    <tr><td colspan="5">データがありません。</td></tr>
+                </c:if>
+            </tbody>
+        </table>
 	</form>
 	<h2>勤怠記録の手動追加</h2>
 	<form action="attendance" method="post">
@@ -220,7 +217,6 @@
         function createChart(canvasId, chartData, chartLabel, backgroundColor, borderColor, yAxisTitle) {
             const labels = Object.keys(chartData).sort();
             const values = labels.map(key => chartData[key]);
-
             if (labels.length > 0) {
                 document.getElementById(canvasId).style.display = 'block';
                 const noDataElement = document.getElementById(canvasId).parentElement.querySelector('.no-data');
@@ -268,7 +264,6 @@
         
         let monthlyTotalHoursData = {};
         let monthlyAttendanceDaysData = {};
-
         try {
             if (monthlyTotalHoursRaw && monthlyTotalHoursRaw !== 'null' && monthlyTotalHoursRaw.length > 2) {
                 monthlyTotalHoursData = JSON.parse(monthlyTotalHoursRaw.replace(/=/g, '":').replace(/, /g, ',"').replace(/{/g, '{"').replace(/}/g, '"}').replace(/" /g, ',"').replace(/""/g, '"'));
@@ -295,7 +290,6 @@
 
         const selectAllCheckbox = document.getElementById('selectAllCheckboxes');
         const checkboxes = document.querySelectorAll('input[name="recordsToDelete"]');
-
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', function() {
                 checkboxes.forEach(checkbox => {

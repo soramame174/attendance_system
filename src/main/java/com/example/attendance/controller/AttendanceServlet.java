@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class AttendanceServlet extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		if (user == null) {
-			resp.sendRedirect("login.jsp");
+			resp.sendRedirect("/login.jsp");
 			return;
 		}
 		
@@ -109,7 +110,7 @@ public class AttendanceServlet extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		if (user == null) {
-			resp.sendRedirect("login.jsp");
+			resp.sendRedirect("/login.jsp");
 			return;
 		}
 		
@@ -146,17 +147,18 @@ public class AttendanceServlet extends HttpServlet {
 				session.setAttribute("errorMessage", "勤怠記録の更新に失敗しました。");
 			}
 		} else if ("delete_manual".equals(action) && "admin".equals(user.getRole())) {
-			String userId = req.getParameter("userId");
-			LocalDateTime checkIn = LocalDateTime.parse(req.getParameter("checkInTime"));
-			LocalDateTime checkOut = req.getParameter("checkOutTime") != null && !req.getParameter("checkOutTime").isEmpty() ? LocalDateTime.parse(req.getParameter("checkOutTime")) : null;
+		    String userId = req.getParameter("userId");
+		    // 日時を秒まで切り詰めてからDAOに渡す
+		    LocalDateTime checkIn = LocalDateTime.parse(req.getParameter("checkInTime")).truncatedTo(ChronoUnit.SECONDS);
+		    LocalDateTime checkOut = req.getParameter("checkOutTime") != null && !req.getParameter("checkOutTime").isEmpty() ?
+		                            LocalDateTime.parse(req.getParameter("checkOutTime")).truncatedTo(ChronoUnit.SECONDS) : null;
 
-			if (attendanceDAO.deleteManualAttendance(userId, checkIn, checkOut)) {
-				session.setAttribute("successMessage", "勤怠記録を削除しました。");
-			} else {
-				session.setAttribute("errorMessage", "勤怠記録の削除に失敗しました。");
-			}
-			
-		} 
+		    if (attendanceDAO.deleteManualAttendance(userId, checkIn, checkOut)) {
+		        session.setAttribute("successMessage", "勤怠記録を削除しました。");
+		    } else {
+		        session.setAttribute("errorMessage", "勤怠記録の削除に失敗しました。");
+		    }
+		}
 		
 		if ("bulk_delete".equals(action) && "admin".equals(user.getRole())) {
 			String[] recordsToDelete = req.getParameterValues("recordsToDelete");

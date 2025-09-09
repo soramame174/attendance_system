@@ -51,7 +51,6 @@ public class UserServlet extends HttpServlet {
 		} else if ("generate_code".equals(action)) {
 		    ProvisionalUser provisionalUser = userDAO.createProvisionalUser(companyCode);
 		    
-		    // 既存のsession変数をそのまま使用
 		    session.setAttribute("provisionalUser", provisionalUser);
 
 		    req.setAttribute("successMessage", "新入社員登録コードを生成しました: " + provisionalUser.getUser().getRegistrationCode());

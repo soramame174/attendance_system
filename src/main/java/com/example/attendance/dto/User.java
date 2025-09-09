@@ -61,7 +61,6 @@ public class User {
 		this.registrationCode = registrationCode;
 	}
 
-	// 以下を追加
 	public void setUsername(String username) {
 		this.username = username;
 	}
