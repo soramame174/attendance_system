@@ -51,7 +51,6 @@
 	  overflow-y: auto;
 	  border-radius: 10px;
 	  background-color: var(--surface-color);
-	  padding-right: 15px; /* この行を追加 */
 	}
     .table-scroll-container table {
         width: 100%;

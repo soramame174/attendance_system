@@ -129,11 +129,20 @@
     <h1>ToDoリスト</h1>
     <p>ようこそ, ${user.username}さん</p>
     <div class="main-nav">
-        <a href="attendance">メニューに戻る</a>
-        <a href="logout">ログアウト</a>
-    </div>
+	    <a href="attendance">従業員メニューに戻る</a>
+	    <a href="profile_edit">プロフィール編集</a>
+	    <a href="logout">ログアウト</a>
+	</div>
 
     <div class="task-form">
+	    <c:if test="${not empty errorMessage}">
+		    <p class="error-message">${errorMessage}</p>
+		    <c:remove var="errorMessage" scope="session"/>
+		</c:if>
+		<c:if test="${not empty successMessage}">
+		    <p class="success-message">${successMessage}</p>
+		    <c:remove var="successMessage" scope="session"/>
+		</c:if>
         <form action="task" method="post">
             <input type="hidden" name="action" value="add">
             <input type="text" name="task" placeholder="新しいタスクを追加..." required>

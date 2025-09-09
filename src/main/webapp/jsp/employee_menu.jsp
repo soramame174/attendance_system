@@ -40,9 +40,10 @@
     <h1>従業員メニュー</h1>
     <p>ようこそ, ${user.username}さん</p>
     <div class="main-nav">
-        <a href="logout">ログアウト</a>
-        <a href="task">ToDoリスト</a>
-    </div>
+	    <a href="logout">ログアウト</a>
+	    <a href="task">ToDoリスト</a>
+	    <a href="profile_edit">プロフィール編集</a>
+	</div>
 
     <c:if test="${not empty sessionScope.successMessage}">
         <p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
