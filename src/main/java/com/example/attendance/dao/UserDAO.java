@@ -18,16 +18,6 @@ public class UserDAO {
 	// Map<登録コード, User>
 	private static final Map<String, ProvisionalUser> registrationCodes = new ConcurrentHashMap<>();
 	
-	static {
-		// サンプルユーザーデータ (ログインテスト用) を再追加
-		String sampleCompanyCode = "company1";
-		companyUsers.computeIfAbsent(sampleCompanyCode, k -> new ConcurrentHashMap<>()).put("admin1", new User("admin1", hashPassword("adminpass"), "admin", true, sampleCompanyCode, null));
-		companyUsers.get(sampleCompanyCode).put("employee1", new User("employee1", hashPassword("password"), "employee", true, sampleCompanyCode, null));
-
-		String anotherCompanyCode = "company2";
-		companyUsers.computeIfAbsent(anotherCompanyCode, k -> new ConcurrentHashMap<>()).put("admin2", new User("admin2", hashPassword("password"), "admin", true, anotherCompanyCode, null));
-	}
-	
 	public User findByUsernameAndCompanyCode(String companyCode, String username) {
 		if (companyUsers.containsKey(companyCode)) {
 			return companyUsers.get(companyCode).get(username);

@@ -1,6 +1,9 @@
 package com.example.attendance.controller;
 
 import java.io.IOException;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -14,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 
 import com.example.attendance.dao.AttendanceDAO;
 import com.example.attendance.dao.UserDAO;
+import com.example.attendance.dto.Attendance;
 import com.example.attendance.dto.User;
 
 @WebServlet("/login")
@@ -49,18 +53,33 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("successMessage", "ログインしました。");
 
             if ("admin".equals(user.getRole())) {
-                req.setAttribute("allAttendanceRecords", attendanceDAO.findAll());
-                Map<String, Long> totalHoursByUser = attendanceDAO.findAll().stream()
-                    .collect(Collectors.groupingBy(com.example.attendance.dto.Attendance::getUserId, Collectors.summingLong(att -> {
-                    if (att.getCheckInTime() != null && att.getCheckOutTime() != null) {
-                        return java.time.temporal.ChronoUnit.HOURS.between(att.getCheckInTime(), att.getCheckOutTime());
-                    }
-                    return 0L;
-                })));
-                req.setAttribute("totalHoursByUser", totalHoursByUser);
+                // 既存のコードを以下に置き換える
+                List<Attendance> allRecords = attendanceDAO.findAll();
+                
+                // 月ごとの合計労働時間を計算（分単位）
+                Map<String, Long> monthlyWorkingHours = allRecords.stream()
+                    .filter(att -> att.getCheckInTime() != null && att.getCheckOutTime() != null)
+                    .collect(Collectors.groupingBy(
+                        att -> YearMonth.from(att.getCheckInTime()).toString(),
+                        Collectors.summingLong(att -> ChronoUnit.MINUTES.between(att.getCheckInTime(), att.getCheckOutTime()))
+                    ));
+
+                // 月ごとの出勤日数を計算
+                Map<String, Long> monthlyCheckInCounts = allRecords.stream()
+                    .filter(att -> att.getCheckInTime() != null)
+                    .collect(Collectors.groupingBy(
+                        att -> YearMonth.from(att.getCheckInTime()).toString(),
+                        Collectors.counting()
+                    ));
+
+                // データをリクエスト属性に設定
+                req.setAttribute("monthlyWorkingHours", monthlyWorkingHours);
+                req.setAttribute("monthlyCheckInCounts", monthlyCheckInCounts);
+
                 RequestDispatcher rd = req.getRequestDispatcher("/jsp/admin_menu.jsp");
                 rd.forward(req, resp);
             } else {
+                // 従業員用の処理は変更しない
                 req.setAttribute("attendanceRecords", attendanceDAO.findByUserId(user.getUsername()));
                 RequestDispatcher rd = req.getRequestDispatcher("/jsp/employee_menu.jsp");
                 rd.forward(req, resp);

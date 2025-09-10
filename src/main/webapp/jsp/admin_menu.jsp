@@ -5,6 +5,7 @@
 <%@ page import="java.util.Comparator" %>
 <%@ page import="java.util.stream.Collectors" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
 <!DOCTYPE html>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
@@ -47,6 +48,7 @@
         padding: 20px;
     }
     .table-scroll-container {
+      margin-top:30px;
 	  max-height: 400px;
 	  overflow-y: auto;
 	  border-radius: 10px;
@@ -267,14 +269,15 @@
             }
         }
 
-        const monthlyTotalHoursRaw = '${monthlyWorkingHours}';
-        const monthlyAttendanceDaysRaw = '${monthlyCheckInCounts}';
-        
+        const monthlyTotalHoursRaw = JSON.stringify(${monthlyWorkingHours});
+        const monthlyAttendanceDaysRaw = JSON.stringify(${monthlyCheckInCounts});
+
         let monthlyTotalHoursData = {};
         let monthlyAttendanceDaysData = {};
+
         try {
             if (monthlyTotalHoursRaw && monthlyTotalHoursRaw !== 'null' && monthlyTotalHoursRaw.length > 2) {
-                monthlyTotalHoursData = JSON.parse(monthlyTotalHoursRaw.replace(/=/g, '":').replace(/, /g, ',"').replace(/{/g, '{"').replace(/}/g, '"}').replace(/" /g, ',"').replace(/""/g, '"'));
+                monthlyTotalHoursData = JSON.parse(monthlyTotalHoursRaw);
                 for (const key in monthlyTotalHoursData) {
                     monthlyTotalHoursData[key] = monthlyTotalHoursData[key] / 60;
                 }
@@ -286,7 +289,7 @@
 
         try {
             if (monthlyAttendanceDaysRaw && monthlyAttendanceDaysRaw !== 'null' && monthlyAttendanceDaysRaw.length > 2) {
-                monthlyAttendanceDaysData = JSON.parse(monthlyAttendanceDaysRaw.replace(/=/g, '":').replace(/, /g, ',"').replace(/{/g, '{"').replace(/}/g, '"}').replace(/" /g, ',"').replace(/""/g, '"'));
+                monthlyAttendanceDaysData = JSON.parse(monthlyAttendanceDaysRaw);
             }
         } catch (e) {
             console.error("Error parsing monthlyAttendanceDays data:", e);

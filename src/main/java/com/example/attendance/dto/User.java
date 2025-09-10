@@ -7,6 +7,7 @@ public class User {
 	private boolean enabled;
 	private String companyCode;
 	private String registrationCode;
+	private String status;
 
 	public User(String username, String password, String role, String companyCode) {
 		this(username, password, role, true, companyCode, null);
@@ -23,6 +24,7 @@ public class User {
 		this.enabled = enabled;
 		this.companyCode = companyCode;
 		this.registrationCode = registrationCode;
+		this.status = enabled ? "有効" : "無効";
 	}
 
 	public String getUsername() {
@@ -43,6 +45,7 @@ public class User {
 		
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+		this.status = enabled ? "有効" : "無効";
 	}
 
 	public String getCompanyCode() {
@@ -68,4 +71,8 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+	
+	public String getStatus() {
+        return status;
+    }
 }
