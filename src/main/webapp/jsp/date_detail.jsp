@@ -20,6 +20,7 @@
         .reservation-item {
             background-color: #f0f0f0;
             border: 1px solid #ddd;
+            border-left: 5px solid; /* 予約色を表示する場所 */
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
@@ -38,8 +39,7 @@
             margin-top: 30px;
             padding: 20px;
             border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
+            border-radius: 10px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -49,36 +49,73 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .form-group input, .form-group select {
+        .form-group input[type="date"],
+        .form-group input[type="time"],
+        .form-group input[type="text"],
+        .form-group select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
-        .button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
+        .form-group .color-picker-container {
+            display: flex;
+            align-items: center;
+        }
+        /* ボタン風のラベルスタイル */
+        .form-group .color-label {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
             border-radius: 5px;
-            color: #fff;
-            transition: background-color 0.3s ease;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .form-group .color-picker-container input[type="color"] {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            margin-left: 10px;
+            border-radius: 4px;
         }
         .button.primary {
             background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         .button.primary:hover {
             background-color: #0056b3;
         }
-        .button.delete {
-            background-color: #dc3545;
+        .delete-btn {
             position: absolute;
             top: 10px;
             right: 10px;
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1.2em;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .button.delete:hover {
-            background-color: #c82333;
+        .delete-btn:hover {
+            background-color: #dc3545;
+            color: #fff; /* ホバー時の文字色を白に変更 */
         }
     </style>
 </head>
@@ -86,47 +123,46 @@
     <div class="container">
         <div class="detail-header">
             <h1><c:out value="${selectedDate}" /></h1>
+            <h2>予約詳細</h2>
         </div>
-
+        
         <c:if test="${not empty successMessage}">
-            <p class="success-message"><c:out value="${successMessage}"/></p>
-            <c:remove var="successMessage" scope="session"/>
+            <div class="success-message">
+                <p><c:out value="${successMessage}"/></p>
+            </div>
         </c:if>
         <c:if test="${not empty errorMessage}">
-            <p class="error-message"><c:out value="${errorMessage}"/></p>
-            <c:remove var="errorMessage" scope="session"/>
+            <div class="error-message">
+                <p><c:out value="${errorMessage}"/></p>
+            </div>
         </c:if>
 
-        <h2>本日の予約</h2>
-        <ul class="reservation-list">
-            <c:forEach var="res" items="${reservations}">
-                <li class="reservation-item">
-                    <div class="date-range">
-                        <c:if test="${res.startDate.isEqual(res.endDate)}">
-                            <c:out value="${res.startDate}" />
-                        </c:if>
-                        <c:if test="${!res.startDate.isEqual(res.endDate)}">
-                            <c:out value="${res.startDate}" /> 〜 <c:out value="${res.endDate}" />
-                        </c:if>
-                    </div>
-                    <strong><c:out value="${res.startTime}" /> - <c:out value="${res.endTime}" /></strong>
-                    <br>
-                    <span class="type-badge"><c:out value="${res.type}" /></span>
-                    <p class="details"><c:out value="${res.details}" /></p>
-                    <form action="<%= request.getContextPath() %>/reserve" method="post" style="display:inline;">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="date" value="<c:out value="${res.startDate}"/>">
-                        <input type="hidden" name="startTime" value="<c:out value="${res.startTime}"/>">
-                        <input type="hidden" name="type" value="<c:out value="${res.type}"/>">
-                        <button type="submit" class="button delete">削除</button>
-                    </form>
-                </li>
-            </c:forEach>
-        </ul>
+        <c:if test="${not empty reservations}">
+            <ul class="reservation-list">
+                <c:forEach var="res" items="${reservations}">
+                    <li class="reservation-item" style="border-left-color: <c:out value="${res.color}"/>;">
+                        <span class="date-range">
+                            <c:out value="${res.startDate}" /> <c:out value="${res.startTime}" /> - 
+                            <c:out value="${res.endDate}" /> <c:out value="${res.endTime}" />
+                        </span>
+                        <div class="details">
+                            <strong><c:out value="${res.username}"/> (<c:out value="${res.type}"/>)</strong>: <c:out value="${res.details}"/>
+                        </div>
+                        <form action="reserve" method="post" style="display:inline;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="date" value="<c:out value="${res.startDate}"/>">
+                            <input type="hidden" name="startTime" value="<c:out value="${res.startTime}"/>">
+                            <input type="hidden" name="type" value="<c:out value="${res.type}"/>">
+                            <button type="submit" class="delete-btn" title="削除">✖</button>
+                        </form>
+                    </li>
+                </c:forEach>
+            </ul>
+        </c:if>
 
         <div class="reservation-form-container">
-            <h2>予約追加</h2>
-            <form action="<%= request.getContextPath() %>/reserve" method="post">
+            <h3>新規予約</h3>
+            <form action="reserve" method="post">
                 <input type="hidden" name="action" value="add">
                 
                 <div class="form-group">
@@ -154,6 +190,13 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="color">色:</label>
+                    <div class="color-picker-container">
+                        <label for="color" class="color-label">色を変える</label>
+                        <input type="color" id="color" name="color" value="#007bff">
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="details">詳細:</label>
                     <input type="text" id="details" name="details" placeholder="詳細を入力">
                 </div>
@@ -166,5 +209,14 @@
             <a href="calendar">カレンダーに戻る</a>
         </div>
     </div>
+
+    <script>
+        const colorInput = document.getElementById('color');
+        const colorPreview = document.getElementById('colorPreview');
+
+        colorInput.addEventListener('input', (event) => {
+            colorPreview.style.backgroundColor = event.target.value;
+        });
+    </script>
 </body>
 </html>

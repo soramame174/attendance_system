@@ -39,6 +39,7 @@ public class ReservationServlet extends HttpServlet {
                 String endTimeStr = request.getParameter("endTime");
                 String type = request.getParameter("type");
                 String details = request.getParameter("details");
+                String color = request.getParameter("color"); // 色のパラメータを追加
 
                 LocalDate startDate = LocalDate.parse(startDateStr);
                 LocalDate endDate = LocalDate.parse(endDateStr);
@@ -50,7 +51,8 @@ public class ReservationServlet extends HttpServlet {
                 } else if (startDate.isEqual(endDate) && endTime.isBefore(startTime)) {
                     session.setAttribute("errorMessage", "開始時間より前の時間に終了時間を設定することはできません。");
                 } else {
-                    Reservation reservation = new Reservation(currentUser.getUsername(), startDate, endDate, startTime, endTime, type, details);
+                    // 新しいコンストラクタでcolorを渡す
+                    Reservation reservation = new Reservation(currentUser.getUsername(), startDate, endDate, startTime, endTime, type, details, color);
                     reservationDAO.addReservation(currentUser.getUsername(), reservation);
                     
                     session.setAttribute("successMessage", "予約が完了しました！");

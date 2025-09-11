@@ -38,47 +38,39 @@
         }
         .calendar-day.today {
             background-color: #e6f7ff;
-            border-color: #4da6ff;
+            border-color: #007bff;
         }
         .calendar-day a {
             text-decoration: none;
             color: inherit;
-        }
-        .calendar-day:hover:not(.empty) {
-            background-color: #e9e9e9;
-            cursor: pointer;
+            display: block;
+            height: 100%;
         }
         .reservation-list {
             list-style: none;
             padding: 0;
-            margin: 10px 0 0;
-            font-size: 0.9em;
+            margin: 5px 0 0 0;
         }
         .reservation-list li {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 5px;
+            font-size: 0.8em;
+            background-color: #fff;
+            padding: 2px 5px;
+            border-left: 5px solid; /* 予約色を表示する場所 */
+            margin-top: 3px;
             border-radius: 3px;
-            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>カレンダー</h1>
-        <c:if test="${not empty successMessage}">
-            <p class="success-message"><c:out value="${successMessage}"/></p>
-            <c:remove var="successMessage" scope="session"/>
-        </c:if>
-        <c:if test="${not empty errorMessage}">
-            <p class="error-message"><c:out value="${errorMessage}"/></p>
-            <c:remove var="errorMessage" scope="session"/>
-        </c:if>
-
         <div class="calendar-nav">
-            <a href="calendar?yearMonth=${prevMonth}">＜ 前月</a>
-            <h2><c:out value="${yearMonth.year}" />年<c:out value="${yearMonth.monthValue}" />月</h2>
-            <a href="calendar?yearMonth=${nextMonth}">次月 ＞</a>
+            <a href="calendar?yearMonth=<c:out value="${prevMonth}"/>">前月</a>
+            <h2><c:out value="${yearMonth}"/></h2>
+            <a href="calendar?yearMonth=<c:out value="${nextMonth}"/>">次月</a>
         </div>
         <div class="calendar-grid">
             <div class="calendar-day">日</div>
@@ -95,7 +87,9 @@
                             <strong><c:out value="${date.dayOfMonth}" /></strong>
                             <ul class="reservation-list">
                                 <c:forEach var="res" items="${reservationsByDate.get(date)}">
-                                    <li><c:out value="${res.username}"/>: <c:out value="${res.type}"/></li>
+                                    <li style="border-left-color: <c:out value="${res.color}"/>;">
+                                        <c:out value="${res.username}"/>: <c:out value="${res.type}"/>
+                                    </li>
                                 </c:forEach>
                             </ul>
                         </a>
@@ -107,7 +101,7 @@
             </c:forEach>
         </div>
         <div class="main-nav" style="margin-top: 20px;">
-            <a href="employee_menu.jsp">従業員メニューに戻る</a>
+            <a href="jsp/employee_menu.jsp">従業員メニューに戻る</a>
         </div>
     </div>
 </body>
