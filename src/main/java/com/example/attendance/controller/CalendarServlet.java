@@ -39,52 +39,52 @@ public class CalendarServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
+        
+        // 追加: currentUserオブジェクトをリクエスト属性に設定
+        request.setAttribute("currentUser", currentUser);
 
         String yearMonthStr = request.getParameter("yearMonth");
         YearMonth yearMonth;
-        try {
-            if (yearMonthStr != null && !yearMonthStr.isEmpty()) {
+        if (yearMonthStr != null && !yearMonthStr.isEmpty()) {
+            try {
                 yearMonth = YearMonth.parse(yearMonthStr);
-            } else {
+            } catch (DateTimeParseException e) {
                 yearMonth = YearMonth.now();
             }
-        } catch (DateTimeParseException e) {
+        } else {
             yearMonth = YearMonth.now();
         }
 
         LocalDate firstDayOfMonth = yearMonth.atDay(1);
-        LocalDate lastDayOfMonth = yearMonth.atEndOfMonth();
-
-        // データベースからすべての予約を取得
-        List<Reservation> allReservations = reservationDAO.findAllReservations();
-        Map<LocalDate, List<Reservation>> reservationsByDate = new TreeMap<>();
-
-        LocalDate date = firstDayOfMonth;
-        while (!date.isAfter(lastDayOfMonth)) {
-            final LocalDate currentDate = date;
-            List<Reservation> dailyReservations = allReservations.stream()
-                .filter(res -> !currentDate.isBefore(res.getStartDate()) && !currentDate.isAfter(res.getEndDate()))
-                .sorted(Comparator.comparing(Reservation::getStartTime))
-                .collect(Collectors.toList());
-            reservationsByDate.put(currentDate, dailyReservations);
-            date = date.plusDays(1);
-        }
-
-        // 日本の祝日を定義 (簡略化)
+        
+        // 祝日の定義
         Set<LocalDate> holidays = new HashSet<>(Arrays.asList(
             LocalDate.of(yearMonth.getYear(), 1, 1),   // 元日
+            LocalDate.of(yearMonth.getYear(), 1, 13),  // 成人の日 (仮)
             LocalDate.of(yearMonth.getYear(), 2, 11),  // 建国記念の日
+            LocalDate.of(yearMonth.getYear(), 3, 20),  // 春分の日 (仮)
             LocalDate.of(yearMonth.getYear(), 4, 29),  // 昭和の日
             LocalDate.of(yearMonth.getYear(), 5, 3),   // 憲法記念日
             LocalDate.of(yearMonth.getYear(), 5, 4),   // みどりの日
             LocalDate.of(yearMonth.getYear(), 5, 5),   // こどもの日
-            LocalDate.of(yearMonth.getYear(), 7, 20),  // 海の日
-            LocalDate.of(yearMonth.getYear(), 9, 15),  // 敬老の日
-            LocalDate.of(yearMonth.getYear(), 10, 10), // 体育の日
+            LocalDate.of(yearMonth.getYear(), 7, 20),  // 海の日 (仮)
+            LocalDate.of(yearMonth.getYear(), 9, 15),  // 敬老の日 (仮)
+            LocalDate.of(yearMonth.getYear(), 9, 23),  // 秋分の日 (仮)
+            LocalDate.of(yearMonth.getYear(), 10, 10), // 体育の日 (仮)
             LocalDate.of(yearMonth.getYear(), 11, 3),  // 文化の日
             LocalDate.of(yearMonth.getYear(), 11, 23), // 勤労感謝の日
             LocalDate.of(yearMonth.getYear(), 12, 23)  // 天皇誕生日
         ));
+        
+        List<Reservation> allReservations = reservationDAO.findAllReservations();
+        Map<LocalDate, List<Reservation>> reservationsByDate = allReservations.stream()
+            .collect(Collectors.groupingBy(
+                Reservation::getStartDate,
+                TreeMap::new,
+                Collectors.toList()
+            ));
+
+        reservationsByDate.values().forEach(list -> list.sort(Comparator.comparing(Reservation::getStartTime)));
         
         request.setAttribute("dates", createCalendarDates(firstDayOfMonth));
         request.setAttribute("yearMonth", yearMonth);

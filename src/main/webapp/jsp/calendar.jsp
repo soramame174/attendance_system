@@ -51,13 +51,17 @@
             border: 2px solid #0056b3 !important;
             font-weight: bold;
         }
-        .calendar-day.sunday, .calendar-day.holiday {
-            color: #d9534f; /* 赤色 */
-        }
-        .calendar-day.saturday {
-            color: #0275d8; /* 青色 */
-        }
-        .reservation-list {
+		/* 日曜日の日付と祝日の日付を赤色にする */
+	    .calendar-grid .calendar-day.sunday strong,
+	    .calendar-grid .calendar-day.holiday strong {
+	        color: #d9534f;
+	    }
+	
+	    /* 土曜日の日付を青色にする */
+	    .calendar-grid .calendar-day.saturday strong {
+	        color: #0275d8;
+	    }
+            .reservation-list {
             list-style: none;
             padding: 0;
             margin-top: 5px;
@@ -88,11 +92,6 @@
 <body>
     <div class="container">
         <h1>カレンダー</h1>
-        <div class="main-nav">
-            <a href="<%= request.getContextPath() %>/attendance?action=filter">勤怠履歴管理</a>
-            <a href="<%= request.getContextPath() %>/users?action=list">ユーザー管理</a>
-            <a href="<%= request.getContextPath() %>/logout">ログアウト</a>
-        </div>
         <div class="calendar-nav">
             <a href="calendar?yearMonth=<c:out value="${prevMonth}"/>" class="button">＜ 前月</a>
             <h2><c:out value="${yearMonth}"/></h2>
@@ -107,36 +106,44 @@
             <div class="calendar-day">金</div>
             <div class="calendar-day saturday">土</div>
             <c:forEach var="date" items="${dates}">
-                <c:choose>
-                    <c:when test="${date != null}">
-                        <c:set var="isToday" value="${date.equals(today)}"/>
-                        <c:set var="isSunday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SUNDAY)}"/>
-                        <c:set var="isSaturday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SATURDAY)}"/>
-                        <c:set var="isHoliday" value="${holidays.contains(date)}"/>
-                        <a href="date_detail?date=<c:out value="${date}"/>" class="calendar-day
-                            <c:if test='${isToday}'>today</c:if>
-                            <c:if test='${!isToday && isSunday}'>sunday</c:if>
-                            <c:if test='${!isToday && isSaturday}'>saturday</c:if>
-                            <c:if test='${!isToday && isHoliday}'>holiday</c:if>
-                        ">
-                            <strong><c:out value="${date.dayOfMonth}" /></strong>
-                            <ul class="reservation-list">
-                                <c:forEach var="res" items="${reservationsByDate.get(date)}">
-                                    <li style="border-left-color: <c:out value="${res.color}"/>;">
-                                        <c:out value="${res.username}"/>: <c:out value="${res.type}"/>
-                                    </li>
-                                </c:forEach>
-                            </ul>
-                        </a>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="calendar-day empty"></div>
-                    </c:otherwise>
-                </c:choose>
-            </c:forEach>
+			    <c:choose>
+			        <c:when test="${date != null}">
+			            <c:set var="isToday" value="${date.equals(today)}"/>
+			            <c:set var="isSunday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SUNDAY)}"/>
+			            <c:set var="isSaturday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SATURDAY)}"/>
+			            <c:set var="isHoliday" value="${holidays.contains(date)}"/>
+			
+			            <a href="date_detail?date=<c:out value="${date}"/>" class="calendar-day
+			                <c:if test='${isToday}'>today</c:if>
+			                <c:if test='${!isToday && isSunday}'>sunday</c:if>
+			                <c:if test='${!isToday && isSaturday}'>saturday</c:if>
+			                <c:if test='${!isToday && isHoliday}'>holiday</c:if>
+			            ">
+			                <strong><c:out value="${date.dayOfMonth}" /></strong>
+			                <ul class="reservation-list">
+			                    <c:forEach var="res" items="${reservationsByDate.get(date)}">
+			                        <li style="border-left-color: <c:out value="${res.color}"/>;">
+			                            <c:out value="${res.username}"/>: <c:out value="${res.type}"/>
+			                        </li>
+			                    </c:forEach>
+			                </ul>
+			            </a>
+			        </c:when>
+			        <c:otherwise>
+			            <div class="calendar-day empty"></div>
+			        </c:otherwise>
+			    </c:choose>
+			</c:forEach>
         </div>
         <div class="main-nav" style="margin-top: 20px;">
-            <a href="jsp/employee_menu.jsp">従業員メニューに戻る</a>
+            <c:choose>
+                <c:when test="${currentUser.role eq 'admin'}">
+                    <a href="jsp/admin_menu.jsp">管理者メニューに戻る</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="jsp/employee_menu.jsp">従業員メニューに戻る</a>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 </body>

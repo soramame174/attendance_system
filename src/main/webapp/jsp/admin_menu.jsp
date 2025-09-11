@@ -78,10 +78,11 @@
 	<h1>管理者メニュー</h1>
 	<p>ようこそ, ${user.username}さん (管理者)</p>
 	<div class="main-nav">
-		<a href="attendance?action=filter">勤怠履歴管理</a>
-		<a href="users?action=list">ユーザー管理</a>
-		<a href="logout">ログアウト</a>
-	</div>
+        <a href="<%= request.getContextPath() %>/attendance?action=filter">勤怠履歴管理</a>
+        <a href="<%= request.getContextPath() %>/calendar">カレンダー</a>
+        <a href="<%= request.getContextPath() %>/users?action=list">ユーザー管理</a>
+        <a href="<%= request.getContextPath() %>/logout">ログアウト</a>
+    </div>
 	<c:if test="${not empty sessionScope.successMessage}">
 		<p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
 		<c:remove var="successMessage" scope="session"/>

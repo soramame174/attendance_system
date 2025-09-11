@@ -144,9 +144,12 @@
                             <div class="details">
                                 <div class="username"><c:out value="${res.username}"/></div>
                                 <div class="time-range">
-                                    <c:out value="${res.startTime}"/> - <c:out value="${res.endTime}"/>
+                                    <c:out value="${res.startTime}"/> ~ <c:out value="${res.endTime}"/>
                                 </div>
                                 <div><c:out value="${res.details}"/></div>
+                                <c:if test="${not empty res.url}">
+                                    <div><a href="${res.url}" target="_blank">関連URL</a></div>
+                                </c:if>
                             </div>
                             <span class="type"><c:out value="${res.type}"/></span>
                             <form action="reserve" method="post" style="margin:0; padding:0;">
@@ -169,7 +172,7 @@
             <h3>新規予約</h3>
             <form action="reserve" method="post">
                 <input type="hidden" name="action" value="add">
-                
+
                 <div class="form-group">
                     <label for="startDate">開始日:</label>
                     <input type="date" id="startDate" name="startDate" value="<c:out value="${selectedDate}"/>" required>
@@ -204,6 +207,10 @@
                 <div class="form-group">
                     <label for="details">詳細:</label>
                     <input type="text" id="details" name="details" placeholder="詳細を入力">
+                </div>
+                <div class="form-group">
+                    <label for="url">URL:</label>
+                    <input type="url" id="url" name="url" placeholder="https://example.com">
                 </div>
                 
                 <button type="submit" class="button primary">予約する</button>
