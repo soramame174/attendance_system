@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -33,6 +34,34 @@
     .check-out:hover {
         background-color: #c82333;
     }
+
+    /* 新しいステータス選択部分のスタイル */
+    .status-controls {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .status-controls select {
+        padding: 8px;
+        font-size: 1em;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+    .status-controls button {
+        padding: 10px 20px;
+        font-size: 1em;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+    }
+    .status-controls button:hover {
+        background-color: #0056b3;
+    }
 </style>
 </head>
 <body>
@@ -40,25 +69,42 @@
     <h1>従業員メニュー</h1>
     <p>ようこそ, ${user.username}さん</p>
     <div class="main-nav">
-	    <a href="logout">ログアウト</a>
-	    <a href="task">ToDoリスト</a>
-	    <a href="profile_edit">プロフィール編集</a>
-	</div>
-
-    <c:if test="${not empty sessionScope.successMessage}">
-        <p class="success-message"><c:out value="${sessionScope.successMessage}"/></p>
+        <a href="<%= request.getContextPath() %>/logout">ログアウト</a>
+        <a href="<%= request.getContextPath() %>/task">ToDoリスト</a>
+        <a href="<%= request.getContextPath() %>/profile_edit">プロフィール編集</a>
+    </div>
+    <c:if test="${not empty successMessage}">
+        <p class="success-message"><c:out value="${successMessage}"/></p>
         <c:remove var="successMessage" scope="session"/>
     </c:if>
 
     <h2>勤怠打刻</h2>
     <div class="attendance-controls">
-        <form action="attendance" method="post">
+        <form action="<%= request.getContextPath() %>/attendance" method="post">
             <input type="hidden" name="action" value="check_in">
             <button type="submit" class="button check-in">出勤</button>
         </form>
-        <form action="attendance" method="post">
+        <form action="<%= request.getContextPath() %>/attendance" method="post">
             <input type="hidden" name="action" value="check_out">
             <button type="submit" class="button check-out">退勤</button>
+        </form>
+    </div>
+
+   	<h2>状況共有</h2>
+    <div class="status-controls">
+        <form action="<%= request.getContextPath() %>/status" method="post">
+            <label for="status">現在の状況を選択:</label>
+            <select name="status" id="status">
+                <option value="" disabled selected>なし</option>
+                <option value="WORKING">仕事中 💼</option>
+                <option value="ON_BUSINESS_TRIP">出張中 ✈️</option>
+                <option value="ON_LEAVE">休暇中 🏖️</option>
+                <option value="ON_BREAK">休憩中 ☕</option>
+                <option value="SICK">体調不良 🤒</option>
+                <option value="HEADING_HOME">帰宅 🏡</option>
+                <option value="WORK_FROM_HOME">在宅ワーク 🏠</option>
+            </select>
+            <button type="submit">状況を更新</button>
         </form>
     </div>
 

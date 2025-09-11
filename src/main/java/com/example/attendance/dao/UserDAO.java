@@ -70,6 +70,16 @@ public class UserDAO {
 		}
 	}
 	
+	public void updateUserStatus(String companyCode, String username, String newStatus) {
+	    Map<String, User> usersInCompany = companyUsers.get(companyCode);
+	    if (usersInCompany != null) {
+	        User user = usersInCompany.get(username);
+	        if (user != null) {
+	            user.setStatus(newStatus);
+	        }
+	    }
+	}
+	
 	public void toggleUserEnabled(String companyCode, String username, boolean enabled) {
 		User user = findByUsernameAndCompanyCode(companyCode, username);
 		if (user != null) {
