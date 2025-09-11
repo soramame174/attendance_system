@@ -163,6 +163,7 @@ input[type="submit"]:hover,
   transform: none;
   box-shadow: none;
 }
+
 .button.danger.disabled-button:hover {
   background-color: var(--border-color);
 }
@@ -417,4 +418,12 @@ tbody tr:hover {
 }
 .todo-list-item input[type="checkbox"] {
     margin-right: 10px;
+}
+
+/* 日付の文字色も変更 */
+.calendar-day.sunday strong, .calendar-day.holiday strong {
+    color: var(--danger-color) !important;
+}
+.calendar-day.saturday strong {
+    color: var(--primary-color) !important;
 }

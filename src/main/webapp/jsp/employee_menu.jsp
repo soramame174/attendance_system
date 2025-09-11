@@ -107,6 +107,18 @@
             </select>
             <button type="submit">状況を更新</button>
         </form>
+        <h4>現在の状況: 
+        <c:choose>
+	        <c:when test="${user.status eq 'WORKING'}">仕事中 💼</c:when>
+	        <c:when test="${user.status eq 'ON_BUSINESS_TRIP'}">出張中 ✈️</c:when>
+	        <c:when test="${user.status eq 'ON_LEAVE'}">休暇中 🏖️</c:when>
+	        <c:when test="${user.status eq 'ON_BREAK'}">休憩中 ☕</c:when>
+	        <c:when test="${user.status eq 'SICK'}">体調不良 🤒</c:when>
+	        <c:when test="${user.status eq 'HEADING_HOME'}">帰宅 🏡</c:when>
+	        <c:when test="${user.status eq 'WORK_FROM_HOME'}">在宅ワーク 🏠</c:when>
+	        <c:otherwise>なし</c:otherwise>
+	    </c:choose>
+        </h4>
     </div>
 
     <h2>あなたの勤怠履歴</h2>

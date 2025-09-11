@@ -34,19 +34,29 @@
 	    background-color: #c82333;
 	}
     .chart-container {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        gap: 20px;
-    }
-    .chart-box {
-        width: 50%;
-        height: 400px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        padding: 20px;
-    }
+	  width: 100%;
+	  display: flex;
+	  justify-content: space-between;
+	  margin-bottom: 20px;
+	  gap: 20px;
+	  flex-wrap: wrap;
+	}
+	
+	.chart-box {
+	  width: 100%;
+	  height: 400px;
+	  background-color: var(--surface-color);
+	  border-radius: 12px;
+	  padding: 25px;
+	  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+	  box-sizing: border-box;
+	}
+	
+	@media (min-width: 768px) {
+	  .chart-box {
+	    width: calc(50% - 10px);
+	  }
+	}
     .table-scroll-container {
       margin-top:30px;
 	  max-height: 400px;
