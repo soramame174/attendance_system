@@ -71,6 +71,7 @@
     <div class="main-nav">
         <a href="<%= request.getContextPath() %>/logout">ログアウト</a>
         <a href="<%= request.getContextPath() %>/task">ToDoリスト</a>
+        <a href="<%= request.getContextPath() %>/calendar">カレンダー</a>
         <a href="<%= request.getContextPath() %>/profile_edit">プロフィール編集</a>
     </div>
     <c:if test="${not empty successMessage}">
