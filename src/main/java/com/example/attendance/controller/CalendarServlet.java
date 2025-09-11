@@ -5,9 +5,12 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -40,7 +43,7 @@ public class CalendarServlet extends HttpServlet {
         String yearMonthStr = request.getParameter("yearMonth");
         YearMonth yearMonth;
         try {
-            if (yearMonthStr != null) {
+            if (yearMonthStr != null && !yearMonthStr.isEmpty()) {
                 yearMonth = YearMonth.parse(yearMonthStr);
             } else {
                 yearMonth = YearMonth.now();
@@ -51,13 +54,11 @@ public class CalendarServlet extends HttpServlet {
 
         LocalDate firstDayOfMonth = yearMonth.atDay(1);
         LocalDate lastDayOfMonth = yearMonth.atEndOfMonth();
-        LocalDate today = LocalDate.now();
 
         // データベースからすべての予約を取得
         List<Reservation> allReservations = reservationDAO.findAllReservations();
-        
-        // 日付ごとに予約をフィルタリングしてマップに格納
         Map<LocalDate, List<Reservation>> reservationsByDate = new TreeMap<>();
+
         LocalDate date = firstDayOfMonth;
         while (!date.isAfter(lastDayOfMonth)) {
             final LocalDate currentDate = date;
@@ -69,27 +70,50 @@ public class CalendarServlet extends HttpServlet {
             date = date.plusDays(1);
         }
 
-        // カレンダーの日付を作成
+        // 日本の祝日を定義 (簡略化)
+        Set<LocalDate> holidays = new HashSet<>(Arrays.asList(
+            LocalDate.of(yearMonth.getYear(), 1, 1),   // 元日
+            LocalDate.of(yearMonth.getYear(), 2, 11),  // 建国記念の日
+            LocalDate.of(yearMonth.getYear(), 4, 29),  // 昭和の日
+            LocalDate.of(yearMonth.getYear(), 5, 3),   // 憲法記念日
+            LocalDate.of(yearMonth.getYear(), 5, 4),   // みどりの日
+            LocalDate.of(yearMonth.getYear(), 5, 5),   // こどもの日
+            LocalDate.of(yearMonth.getYear(), 7, 20),  // 海の日
+            LocalDate.of(yearMonth.getYear(), 9, 15),  // 敬老の日
+            LocalDate.of(yearMonth.getYear(), 10, 10), // 体育の日
+            LocalDate.of(yearMonth.getYear(), 11, 3),  // 文化の日
+            LocalDate.of(yearMonth.getYear(), 11, 23), // 勤労感謝の日
+            LocalDate.of(yearMonth.getYear(), 12, 23)  // 天皇誕生日
+        ));
+        
+        request.setAttribute("dates", createCalendarDates(firstDayOfMonth));
+        request.setAttribute("yearMonth", yearMonth);
+        request.setAttribute("prevMonth", yearMonth.minusMonths(1));
+        request.setAttribute("nextMonth", yearMonth.plusMonths(1));
+        request.setAttribute("today", LocalDate.now());
+        request.setAttribute("holidays", holidays);
+        request.setAttribute("reservationsByDate", reservationsByDate);
+
+        RequestDispatcher rd = request.getRequestDispatcher("/jsp/calendar.jsp");
+        rd.forward(request, response);
+    }
+    
+    // カレンダーの日付リストを生成するヘルパーメソッド
+    private List<LocalDate> createCalendarDates(LocalDate firstDayOfMonth) {
         List<LocalDate> dates = new ArrayList<>();
         int firstDayOfWeek = firstDayOfMonth.getDayOfWeek().getValue();
-        if (firstDayOfWeek == 7) { // Sunday is 7, convert to 0 for padding
+        // 日曜日を週の始まり (0) とする
+        if (firstDayOfWeek == 7) { 
             firstDayOfWeek = 0;
         }
         for (int i = 0; i < firstDayOfWeek; i++) {
             dates.add(null);
         }
-        for (int i = 1; i <= lastDayOfMonth.getDayOfMonth(); i++) {
-            dates.add(yearMonth.atDay(i));
+        LocalDate date = firstDayOfMonth;
+        while (date.getMonth() == firstDayOfMonth.getMonth()) {
+            dates.add(date);
+            date = date.plusDays(1);
         }
-
-        request.setAttribute("dates", dates);
-        request.setAttribute("yearMonth", yearMonth);
-        request.setAttribute("prevMonth", yearMonth.minusMonths(1));
-        request.setAttribute("nextMonth", yearMonth.plusMonths(1));
-        request.setAttribute("today", today);
-        request.setAttribute("reservationsByDate", reservationsByDate);
-
-        RequestDispatcher rd = request.getRequestDispatcher("/jsp/calendar.jsp");
-        rd.forward(request, response);
+        return dates;
     }
 }

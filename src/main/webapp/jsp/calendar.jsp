@@ -2,7 +2,9 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ page import="java.time.LocalDate" %>
+<%@ page import="java.time.DayOfWeek" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Set" %>
 <%@ page import="com.example.attendance.dto.Reservation" %>
 <!DOCTYPE html>
 <html lang="ja">
@@ -24,6 +26,7 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
+            text-decoration: none !important;
         }
         .calendar-day {
             text-align: center;
@@ -31,59 +34,91 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            text-decoration: none;
+            color: #333;
+        }
+        .calendar-day:hover {
+        	transform: translateY(-2px);
+	        box-shadow: 0 6px 15px rgba(52, 152, 219, 0.5);
         }
         .calendar-day.empty {
             background-color: transparent;
             border: none;
         }
         .calendar-day.today {
-            background-color: #e6f7ff;
-            border-color: #007bff;
+            background-color: rgb(137, 170, 242) !important;
+            color: #fff !important;
+            border: 2px solid #0056b3 !important;
+            font-weight: bold;
         }
-        .calendar-day a {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            height: 100%;
+        .calendar-day.sunday, .calendar-day.holiday {
+            color: #d9534f; /* 赤色 */
+        }
+        .calendar-day.saturday {
+            color: #0275d8; /* 青色 */
         }
         .reservation-list {
             list-style: none;
             padding: 0;
-            margin: 5px 0 0 0;
+            margin-top: 5px;
+            text-align: left;
+            font-size: 0.8em;
         }
         .reservation-list li {
-            font-size: 0.8em;
-            background-color: #fff;
-            padding: 2px 5px;
-            border-left: 5px solid; /* 予約色を表示する場所 */
-            margin-top: 3px;
-            border-radius: 3px;
+            padding: 2px;
+            border-left: 5px solid;
+            margin-bottom: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            text-align: left;
+        }
+        .main-nav a {
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .main-nav a:hover {
+            background-color: #5a6268;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>カレンダー</h1>
+        <div class="main-nav">
+            <a href="<%= request.getContextPath() %>/attendance?action=filter">勤怠履歴管理</a>
+            <a href="<%= request.getContextPath() %>/users?action=list">ユーザー管理</a>
+            <a href="<%= request.getContextPath() %>/logout">ログアウト</a>
+        </div>
         <div class="calendar-nav">
-            <a href="calendar?yearMonth=<c:out value="${prevMonth}"/>">前月</a>
+            <a href="calendar?yearMonth=<c:out value="${prevMonth}"/>" class="button">＜ 前月</a>
             <h2><c:out value="${yearMonth}"/></h2>
-            <a href="calendar?yearMonth=<c:out value="${nextMonth}"/>">次月</a>
+            <a href="calendar?yearMonth=<c:out value="${nextMonth}"/>" class="button">次月 ＞</a>
         </div>
         <div class="calendar-grid">
-            <div class="calendar-day">日</div>
+            <div class="calendar-day sunday">日</div>
             <div class="calendar-day">月</div>
             <div class="calendar-day">火</div>
             <div class="calendar-day">水</div>
             <div class="calendar-day">木</div>
             <div class="calendar-day">金</div>
-            <div class="calendar-day">土</div>
+            <div class="calendar-day saturday">土</div>
             <c:forEach var="date" items="${dates}">
                 <c:choose>
                     <c:when test="${date != null}">
-                        <a href="date_detail?date=<c:out value="${date}"/>" class="calendar-day <c:if test='${date.equals(java.time.LocalDate.now())}'>today</c:if>">
+                        <c:set var="isToday" value="${date.equals(today)}"/>
+                        <c:set var="isSunday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SUNDAY)}"/>
+                        <c:set var="isSaturday" value="${date.dayOfWeek.equals(java.time.DayOfWeek.SATURDAY)}"/>
+                        <c:set var="isHoliday" value="${holidays.contains(date)}"/>
+                        <a href="date_detail?date=<c:out value="${date}"/>" class="calendar-day
+                            <c:if test='${isToday}'>today</c:if>
+                            <c:if test='${!isToday && isSunday}'>sunday</c:if>
+                            <c:if test='${!isToday && isSaturday}'>saturday</c:if>
+                            <c:if test='${!isToday && isHoliday}'>holiday</c:if>
+                        ">
                             <strong><c:out value="${date.dayOfMonth}" /></strong>
                             <ul class="reservation-list">
                                 <c:forEach var="res" items="${reservationsByDate.get(date)}">

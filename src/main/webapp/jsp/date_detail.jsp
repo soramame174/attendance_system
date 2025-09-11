@@ -7,33 +7,52 @@
     <meta charset="UTF-8">
     <title><c:out value="${selectedDate}" />の詳細</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         .detail-header {
             text-align: center;
             margin-bottom: 20px;
         }
-        .reservation-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .reservation-list-container {
+            margin-top: 20px;
         }
         .reservation-item {
-            background-color: #f0f0f0;
+            background-color: #f9f9f9;
             border: 1px solid #ddd;
-            border-left: 5px solid; /* 予約色を表示する場所 */
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .reservation-item .date-range {
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 5px;
+            border-left: 5px solid;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .reservation-item .details {
-            font-size: 1em;
+            flex-grow: 1;
+        }
+        .reservation-item .username {
+            font-weight: bold;
             color: #333;
+        }
+        .reservation-item .time-range {
+            font-size: 0.9em;
+            color: #777;
+        }
+        .reservation-item .type {
+            display: inline-block;
+            background-color: #e9e9e9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .reservation-item .delete-button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #dc3545;
+            font-size: 1.5em;
+            padding: 0;
         }
         .reservation-form-container {
             margin-top: 30px;
@@ -56,12 +75,13 @@
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
         .form-group .color-picker-container {
             display: flex;
             align-items: center;
         }
-        /* ボタン風のラベルスタイル */
         .form-group .color-label {
             padding: 8px 12px;
             border: 1px solid #ccc;
@@ -96,36 +116,14 @@
         .button.primary:hover {
             background-color: #0056b3;
         }
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #dc3545;
-            cursor: pointer;
-            font-size: 1.2em;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .delete-btn:hover {
-            background-color: #dc3545;
-            color: #fff; /* ホバー時の文字色を白に変更 */
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="detail-header">
-            <h1><c:out value="${selectedDate}" /></h1>
-            <h2>予約詳細</h2>
+            <h1><c:out value="${selectedDate}" />の予約一覧</h1>
         </div>
-        
+
         <c:if test="${not empty successMessage}">
             <div class="success-message">
                 <p><c:out value="${successMessage}"/></p>
@@ -137,28 +135,35 @@
             </div>
         </c:if>
 
-        <c:if test="${not empty reservations}">
-            <ul class="reservation-list">
-                <c:forEach var="res" items="${reservations}">
-                    <li class="reservation-item" style="border-left-color: <c:out value="${res.color}"/>;">
-                        <span class="date-range">
-                            <c:out value="${res.startDate}" /> <c:out value="${res.startTime}" /> - 
-                            <c:out value="${res.endDate}" /> <c:out value="${res.endTime}" />
-                        </span>
-                        <div class="details">
-                            <strong><c:out value="${res.username}"/> (<c:out value="${res.type}"/>)</strong>: <c:out value="${res.details}"/>
+        <div class="reservation-list-container">
+            <h3>予約アイテム</h3>
+            <c:choose>
+                <c:when test="${not empty reservations}">
+                    <c:forEach var="res" items="${reservations}">
+                        <div class="reservation-item" style="border-left-color: ${res.color};">
+                            <div class="details">
+                                <div class="username"><c:out value="${res.username}"/></div>
+                                <div class="time-range">
+                                    <c:out value="${res.startTime}"/> - <c:out value="${res.endTime}"/>
+                                </div>
+                                <div><c:out value="${res.details}"/></div>
+                            </div>
+                            <span class="type"><c:out value="${res.type}"/></span>
+                            <form action="reserve" method="post" style="margin:0; padding:0;">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="date" value="${res.startDate}">
+                                <input type="hidden" name="startTime" value="${res.startTime}">
+                                <input type="hidden" name="type" value="${res.type}">
+                                <button type="submit" class="delete-button material-symbols-outlined">delete</button>
+                            </form>
                         </div>
-                        <form action="reserve" method="post" style="display:inline;">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="date" value="<c:out value="${res.startDate}"/>">
-                            <input type="hidden" name="startTime" value="<c:out value="${res.startTime}"/>">
-                            <input type="hidden" name="type" value="<c:out value="${res.type}"/>">
-                            <button type="submit" class="delete-btn" title="削除">✖</button>
-                        </form>
-                    </li>
-                </c:forEach>
-            </ul>
-        </c:if>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <p>この日に予約はありません。</p>
+                </c:otherwise>
+            </c:choose>
+        </div>
 
         <div class="reservation-form-container">
             <h3>新規予約</h3>
@@ -211,11 +216,8 @@
     </div>
 
     <script>
-        const colorInput = document.getElementById('color');
-        const colorPreview = document.getElementById('colorPreview');
-
-        colorInput.addEventListener('input', (event) => {
-            colorPreview.style.backgroundColor = event.target.value;
+        document.getElementById('color').addEventListener('input', function() {
+            document.getElementById('colorPreview').style.backgroundColor = this.value;
         });
     </script>
 </body>

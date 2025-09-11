@@ -39,7 +39,7 @@ public class ReservationServlet extends HttpServlet {
                 String endTimeStr = request.getParameter("endTime");
                 String type = request.getParameter("type");
                 String details = request.getParameter("details");
-                String color = request.getParameter("color"); // 色のパラメータを追加
+                String color = request.getParameter("color");
 
                 LocalDate startDate = LocalDate.parse(startDateStr);
                 LocalDate endDate = LocalDate.parse(endDateStr);
